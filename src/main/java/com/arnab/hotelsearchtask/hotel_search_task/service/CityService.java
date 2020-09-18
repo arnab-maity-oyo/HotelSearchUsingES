@@ -17,7 +17,7 @@ public class CityService {
     @Autowired
     private CityRepo cityRepository;
 
-    public String addCity(City city) throws IOException {
+    public String addCity(City city)  {
         return cityRepository.AddCitytoElastic(city);
     }
 

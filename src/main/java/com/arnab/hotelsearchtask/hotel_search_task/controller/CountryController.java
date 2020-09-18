@@ -18,7 +18,7 @@ public class CountryController {
     private CountryService countryService;
 
     @PostMapping("/addcountry")
-    public String addCountrytoES(@RequestBody Country country) throws IOException {
+    public String addCountrytoES(@RequestBody Country country)  {
         return countryService.addCountry(country);
     }
 

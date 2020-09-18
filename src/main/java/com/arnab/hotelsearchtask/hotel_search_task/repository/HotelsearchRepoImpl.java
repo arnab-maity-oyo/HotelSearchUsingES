@@ -38,12 +38,28 @@ public class HotelsearchRepoImpl implements HotelsearchRepo {
 
 
     @Override
-    public String AddHoteltoES(Hotel hotel) throws IOException {
+    public String AddHoteltoES(Hotel hotel) {
         IndexRequest request = new IndexRequest(hotel_INDEX);
-        request.id(hotel.getHotel_id());
-        request.source(new ObjectMapper().writeValueAsString(hotel), XContentType.JSON);
-        IndexResponse indexResponse = client.index(request, RequestOptions.DEFAULT);
-        System.out.println("response id: " + indexResponse.getId());
+
+        try {
+            request.id(hotel.getHotel_id());
+            request.source(new ObjectMapper().writeValueAsString(hotel), XContentType.JSON);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        IndexResponse indexResponse = null;
+        try {
+            indexResponse = client.index(request, RequestOptions.DEFAULT);
+            System.out.println("response id: " + indexResponse.getId());
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
         return indexResponse.getResult().name();
     }
 

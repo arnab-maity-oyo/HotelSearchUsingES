@@ -20,7 +20,7 @@ public class CountryService {
     @Autowired
     private CountryRepo countryRepository;
 
-    public String addCountry(Country country) throws IOException {
+    public String addCountry(Country country)  {
         return countryRepository.AddCountrytoElastic(country);
     }
 

@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface CityRepo {
-    String AddCitytoElastic(City city) throws IOException;
+    String AddCitytoElastic(City city) ;
 
     List<City> findAllCitiesFromElastic();
 }

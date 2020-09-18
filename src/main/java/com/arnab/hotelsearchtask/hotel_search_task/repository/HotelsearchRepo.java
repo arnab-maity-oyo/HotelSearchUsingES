@@ -15,5 +15,5 @@ public interface HotelsearchRepo {
     List<Hotel> findAllHotelDataByCountryAndCityFromElastic(String country_id, String city_id);
 
 
-    String AddHoteltoES(Hotel hotel) throws IOException;
+    String AddHoteltoES(Hotel hotel) ;
 }

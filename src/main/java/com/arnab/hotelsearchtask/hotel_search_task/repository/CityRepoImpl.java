@@ -35,12 +35,26 @@ public class CityRepoImpl implements CityRepo{
             RestClient.builder(new HttpHost("localhost", 9200, "http")));
 
     @Override
-    public String AddCitytoElastic(City city) throws IOException {
+    public String AddCitytoElastic(City city)  {
         IndexRequest request = new IndexRequest(city_INDEX);
-        request.id(city.getCity_id());
-        request.source(new ObjectMapper().writeValueAsString(city), XContentType.JSON);
-        IndexResponse indexResponse = client.index(request, RequestOptions.DEFAULT);
-        System.out.println("response id: " + indexResponse.getId());
+        try {
+            request.id(city.getCity_id());
+            request.source(new ObjectMapper().writeValueAsString(city), XContentType.JSON);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        IndexResponse indexResponse = null;
+        try {
+            indexResponse = client.index(request, RequestOptions.DEFAULT);
+            System.out.println("response id: " + indexResponse.getId());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
         return indexResponse.getResult().name();
     }
 

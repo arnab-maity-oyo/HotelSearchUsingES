@@ -17,7 +17,7 @@ public class CityController {
     private CityService cityService;
 
     @PostMapping("/addcity")
-    public String addCCitytoES(@RequestBody City city) throws IOException {
+    public String addCCitytoES(@RequestBody City city)  {
         return cityService.addCity(city);
     }
 

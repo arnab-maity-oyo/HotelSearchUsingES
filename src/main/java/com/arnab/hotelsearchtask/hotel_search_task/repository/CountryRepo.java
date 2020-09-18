@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface CountryRepo {
 
-    String AddCountrytoElastic(Country country) throws IOException;
+    String AddCountrytoElastic(Country country);
 
     List<Country> findAllCountriesFromElastic();
 }

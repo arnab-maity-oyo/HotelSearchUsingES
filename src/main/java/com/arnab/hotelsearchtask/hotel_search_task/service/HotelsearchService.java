@@ -28,7 +28,7 @@ public class HotelsearchService {
 
     }
 
-    public String addHoteltoElastic(Hotel hotel) throws IOException {
+    public String addHoteltoElastic(Hotel hotel) {
         return hotelRepository.AddHoteltoES(hotel);
     }
 }

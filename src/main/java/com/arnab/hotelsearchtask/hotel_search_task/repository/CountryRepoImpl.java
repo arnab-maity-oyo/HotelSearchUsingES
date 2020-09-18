@@ -34,12 +34,27 @@ public class CountryRepoImpl implements CountryRepo {
             RestClient.builder(new HttpHost("localhost", 9200, "http")));
 
     @Override
-    public String AddCountrytoElastic(Country country) throws IOException {
+    public String AddCountrytoElastic(Country country)  {
         IndexRequest request = new IndexRequest(country_INDEX);
-        request.id(country.getCountry_id());
-        request.source(new ObjectMapper().writeValueAsString(country), XContentType.JSON);
-        IndexResponse indexResponse = client.index(request, RequestOptions.DEFAULT);
-        System.out.println("response id: " + indexResponse.getId());
+
+        try {
+            request.id(country.getCountry_id());
+            request.source(new ObjectMapper().writeValueAsString(country), XContentType.JSON);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        IndexResponse indexResponse = null;
+        try {
+            indexResponse = client.index(request, RequestOptions.DEFAULT);
+            System.out.println("response id: " + indexResponse.getId());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
         return indexResponse.getResult().name();
     }
 
