@@ -41,19 +41,21 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
 
 
     @Override
-    public String AddHoteltoES(Hotel hotel, String country_id, String city_id)
+    public String AddHoteltoES(Hotel hotel)
             throws DocumentNotFoundException {
 
         Country country_info = new Country();
+        City city_info = new City();
+        String country_id_info = hotel.getCountry_id();
+        String city_id_info = hotel.getCity_id();
 
         try {
-            country_info = getCountryInfoFromElastic(country_id);
+            country_info = getCountryInfoFromElastic(country_id_info);
         } catch (DocumentNotFoundException e) {
             e.printStackTrace();
         }
 
-        City city_info = new City();
-        city_info = getcityInfoFromElastic(city_id);
+        city_info = getcityInfoFromElastic(city_id_info);
 
         if (country_info.getCountry_id() == null && city_info.getCity_id() == null) {
             throw new DocumentNotFoundException("Country_ID and City_ID Not Found");
@@ -70,8 +72,6 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
 
                     try {
                         request.id(hotel.getHotel_id());
-                        hotel.setCountry_id(country_id);
-                        hotel.setCity_id(city_id);
                         request.source(new ObjectMapper().writeValueAsString(hotel), XContentType.JSON);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -80,7 +80,7 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
                     IndexResponse indexResponse = null;
                     try {
                         indexResponse = client.index(request, RequestOptions.DEFAULT);
-                        System.out.println("response id: " + indexResponse.getId());
+                        System.out.println("response id: " + indexResponse.getId()+" inserted");
 
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -94,7 +94,7 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
     }
 
     @Override
-    public Hotel getHotelInfoByIDfromElastic(String hotel_id) {
+    public Hotel getHotelInfoByIDfromElastic(String hotel_id) throws DocumentNotFoundException {
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.indices(hotel_INDEX);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -113,6 +113,10 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
                     hotelInfo = objectMapper.convertValue(map, Hotel.class);
                 }
             }
+            else
+            {
+                throw  new DocumentNotFoundException("Hotel_ID does not exist");
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -125,22 +129,60 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
     public String updateHotelInfotoElastic(String hotel_id, Hotel hotel) throws DocumentNotFoundException {
         Hotel hoteldocument = new Hotel();
         hoteldocument = getHotelInfoByIDfromElastic(hotel_id);
-        if (hoteldocument == null) {
-            throw new DocumentNotFoundException("Hotel ID does not exist");
+        Country country_info = new Country();
+        City city_info = new City();
+        String country_id_info = hotel.getCountry_id();
+        String city_id_info = hotel.getCity_id();
 
+        try {
+            country_info = getCountryInfoFromElastic(country_id_info);
+        } catch (DocumentNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        city_info = getcityInfoFromElastic(city_id_info);
+
+
+        if (hoteldocument.getHotel_id() == null && country_info.getCountry_id() == null && city_info.getCity_id() == null) {
+            throw new DocumentNotFoundException("Hotel ID, Country_ID and City_ID does not exist");
         } else {
-            UpdateResponse updateResponse = null;
-            try {
+            if (hoteldocument.getHotel_id() != null && country_info.getCountry_id() == null && city_info.getCity_id() == null) {
+                throw new DocumentNotFoundException("Country_ID and City_ID does not exist");
+            } else {
+                if (hoteldocument.getHotel_id() != null && country_info.getCountry_id() == null && city_info.getCity_id() != null) {
+                    throw new DocumentNotFoundException("Country_ID does not exist");
+                } else {
+                    if (hoteldocument.getHotel_id() != null && country_info.getCountry_id() != null && city_info.getCity_id() == null) {
+                        throw new DocumentNotFoundException("City_ID does not exist");
+                    } else {
+                        if (hoteldocument.getHotel_id() == null && country_info.getCountry_id() == null && city_info.getCity_id() != null) {
+                            throw new DocumentNotFoundException("Hotel_ID and Country_ID does not exist");
+                        } else {
+                            if (hoteldocument.getHotel_id() == null && country_info.getCountry_id() != null && city_info.getCity_id() != null) {
+                                throw new DocumentNotFoundException("Hotel_ID does not exist");
+                            } else {
+                                if (hoteldocument.getHotel_id() == null && country_info.getCountry_id() != null && city_info.getCity_id() == null) {
+                                    throw new DocumentNotFoundException("Hotel_ID and City_ID does not exist");
+                                } else {
+                                    UpdateResponse updateResponse = null;
+                                    try {
 
-                UpdateRequest updateRequest = new UpdateRequest(hotel_INDEX, hotel_TYPE, hoteldocument.getHotel_id());
-                updateRequest.doc(new ObjectMapper().writeValueAsString(hotel), XContentType.JSON);
-                updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
+                                        UpdateRequest updateRequest = new UpdateRequest(hotel_INDEX, hotel_TYPE, hoteldocument.getHotel_id());
+                                        hotel.setHotel_id(hotel_id);
+                                        updateRequest.doc(new ObjectMapper().writeValueAsString(hotel), XContentType.JSON);
+                                        updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
+                                        System.out.println("response id: " + updateResponse.getId()+" updated");
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    return updateResponse.getResult().name();
 
-
-            } catch (Exception e) {
-                e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            return updateResponse.getResult().name();
         }
     }
 
