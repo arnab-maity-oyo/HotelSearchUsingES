@@ -1,11 +1,9 @@
 package com.arnab.hotelsearchtask.hotel_search_task.repository;
 
+import com.arnab.hotelsearchtask.hotel_search_task.exception.DocumentNotFoundException;
 import com.arnab.hotelsearchtask.hotel_search_task.model.Hotel;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import java.io.IOException;
 import java.util.List;
 
 @Repository
@@ -15,5 +13,9 @@ public interface HotelsearchRepo {
     List<Hotel> findAllHotelDataByCountryAndCityFromElastic(String country_id, String city_id);
 
 
-    String AddHoteltoES(Hotel hotel) ;
+    String AddHoteltoES(Hotel hotel, String country_id, String city_id) throws DocumentNotFoundException;
+
+    String updateHotelInfotoElastic(String hotel_id, Hotel hotel) throws DocumentNotFoundException;
+
+    Hotel getHotelInfoByIDfromElastic(String hotel_id);
 }
