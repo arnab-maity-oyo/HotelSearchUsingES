@@ -29,16 +29,16 @@ public class HotelsearchService {
 
     }
 
-    public String addHoteltoElastic(Hotel hotel, String country_id, String city_id)
+    public String addHoteltoElastic(Hotel hotel)
             throws DocumentNotFoundException {
-        return hotelRepository.AddHoteltoES(hotel, country_id, city_id);
+        return hotelRepository.AddHoteltoES(hotel);
     }
 
     public String updateHotelInfo(String hotel_id, Hotel hotel) throws DocumentNotFoundException {
         return hotelRepository.updateHotelInfotoElastic(hotel_id, hotel);
     }
 
-    public Hotel getHotelInfoByID(String hotel_id) {
+    public Hotel getHotelInfoByID(String hotel_id)throws DocumentNotFoundException {
         return  hotelRepository.getHotelInfoByIDfromElastic(hotel_id);
     }
 }

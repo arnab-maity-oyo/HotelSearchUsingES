@@ -17,10 +17,10 @@ public class HotelsearchController {
     @Autowired
     private HotelsearchService hotelsearchService;
 
-    @PostMapping("/addhotels/{country_id}/{city_id}")
-    public String addHotel(@RequestBody Hotel hotel, @PathVariable String country_id, @PathVariable String city_id)
+    @PostMapping("/addhotels")
+    public String addHotel(@RequestBody Hotel hotel)
             throws DocumentNotFoundException {
-        return hotelsearchService.addHoteltoElastic(hotel, country_id, city_id);
+        return hotelsearchService.addHoteltoElastic(hotel);
     }
 
     @GetMapping(value ="/allhotels", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -34,7 +34,7 @@ public class HotelsearchController {
     }
 
     @GetMapping(value="/allhotels/{hotel_id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Hotel getHotelByID(@PathVariable String hotel_id)
+    public Hotel getHotelByID(@PathVariable String hotel_id) throws DocumentNotFoundException
     {
         return hotelsearchService.getHotelInfoByID(hotel_id);
     }
