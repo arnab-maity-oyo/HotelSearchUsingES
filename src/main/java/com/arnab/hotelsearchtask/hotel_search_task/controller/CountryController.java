@@ -1,13 +1,13 @@
 package com.arnab.hotelsearchtask.hotel_search_task.controller;
 
 
+import com.arnab.hotelsearchtask.hotel_search_task.exception.DocumentNotFoundException;
 import com.arnab.hotelsearchtask.hotel_search_task.model.Country;
 import com.arnab.hotelsearchtask.hotel_search_task.service.CountryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -26,4 +26,10 @@ public class CountryController {
     public List<Country> getAllCountry(){
         return countryService.getAllCountriesInfo();
     }
+
+    @GetMapping(value ="/allcountries/{country_id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Country getCountryByID(@PathVariable String country_id) throws DocumentNotFoundException {
+        return countryService.getCountryInfo(country_id);
+    }
+
 }

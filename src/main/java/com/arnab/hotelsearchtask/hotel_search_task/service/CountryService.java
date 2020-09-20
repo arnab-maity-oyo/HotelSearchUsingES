@@ -1,6 +1,7 @@
 package com.arnab.hotelsearchtask.hotel_search_task.service;
 
 
+import com.arnab.hotelsearchtask.hotel_search_task.exception.DocumentNotFoundException;
 import com.arnab.hotelsearchtask.hotel_search_task.model.Country;
 import com.arnab.hotelsearchtask.hotel_search_task.model.Hotel;
 import com.arnab.hotelsearchtask.hotel_search_task.repository.CountryRepo;
@@ -20,11 +21,16 @@ public class CountryService {
     @Autowired
     private CountryRepo countryRepository;
 
-    public String addCountry(Country country)  {
+    public String addCountry(Country country) {
         return countryRepository.AddCountrytoElastic(country);
     }
 
     public List<Country> getAllCountriesInfo() {
+
         return countryRepository.findAllCountriesFromElastic();
+    }
+
+    public Country getCountryInfo(String country_id) throws DocumentNotFoundException {
+        return countryRepository.getCountryInfoFromElastic(country_id);
     }
 }
