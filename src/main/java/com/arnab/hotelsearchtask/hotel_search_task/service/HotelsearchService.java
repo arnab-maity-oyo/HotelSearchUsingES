@@ -34,11 +34,19 @@ public class HotelsearchService {
         return hotelRepository.AddHoteltoES(hotel);
     }
 
-    public String updateHotelInfo(String hotel_id, Hotel hotel) throws DocumentNotFoundException {
+    public Hotel updateHotelInfo(String hotel_id, Hotel hotel) throws DocumentNotFoundException {
         return hotelRepository.updateHotelInfotoElastic(hotel_id, hotel);
     }
 
     public Hotel getHotelInfoByID(String hotel_id)throws DocumentNotFoundException {
         return  hotelRepository.getHotelInfoByIDfromElastic(hotel_id);
+    }
+
+    public List<String> getHotelsCount() {
+        return hotelRepository.getHotelsCountByStatusType();
+    }
+
+    public void deleteHotelByID(String hotel_id) throws DocumentNotFoundException {
+        hotelRepository.deleteHotelByIDfromElastic(hotel_id);
     }
 }
