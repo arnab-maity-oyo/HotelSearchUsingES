@@ -6,6 +6,8 @@ import com.arnab.hotelsearchtask.hotel_search_task.model.Country;
 import com.arnab.hotelsearchtask.hotel_search_task.model.Hotel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -18,6 +20,10 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.filter.Filters;
+import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregator;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -68,9 +74,10 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
                     throw new DocumentNotFoundException("City_ID Not Found");
 
                 } else {
-                    IndexRequest request = new IndexRequest(hotel_INDEX);
+                    IndexRequest request = new IndexRequest();
 
                     try {
+                        request.index(hotel_INDEX);
                         request.id(hotel.getHotel_id());
                         request.source(new ObjectMapper().writeValueAsString(hotel), XContentType.JSON);
                     } catch (Exception e) {
@@ -80,7 +87,7 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
                     IndexResponse indexResponse = null;
                     try {
                         indexResponse = client.index(request, RequestOptions.DEFAULT);
-                        System.out.println("response id: " + indexResponse.getId()+" inserted");
+                        System.out.println("response id: " + indexResponse.getId() + " inserted");
 
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -112,10 +119,8 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
                     Map<String, Object> map = hit.getSourceAsMap();
                     hotelInfo = objectMapper.convertValue(map, Hotel.class);
                 }
-            }
-            else
-            {
-                throw  new DocumentNotFoundException("Hotel_ID does not exist");
+            } else {
+                throw new DocumentNotFoundException("Hotel_ID does not exist");
             }
 
         } catch (IOException e) {
@@ -126,7 +131,7 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
 
 
     @Override
-    public String updateHotelInfotoElastic(String hotel_id, Hotel hotel) throws DocumentNotFoundException {
+    public Hotel updateHotelInfotoElastic(String hotel_id, Hotel hotel) throws DocumentNotFoundException {
         Hotel hoteldocument = new Hotel();
         hoteldocument = getHotelInfoByIDfromElastic(hotel_id);
         Country country_info = new Country();
@@ -165,18 +170,18 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
                                     throw new DocumentNotFoundException("Hotel_ID and City_ID does not exist");
                                 } else {
                                     UpdateResponse updateResponse = null;
+                                    UpdateRequest updateRequest = new UpdateRequest();
                                     try {
-
-                                        UpdateRequest updateRequest = new UpdateRequest(hotel_INDEX, hotel_TYPE, hoteldocument.getHotel_id());
+                                        updateRequest.index(hotel_INDEX);
+                                        updateRequest.id(hoteldocument.getHotel_id());
                                         hotel.setHotel_id(hotel_id);
                                         updateRequest.doc(new ObjectMapper().writeValueAsString(hotel), XContentType.JSON);
                                         updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
-                                        System.out.println("response id: " + updateResponse.getId()+" updated");
+                                        System.out.println("response id: " + updateResponse.getId() + " updated");
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
-                                    return updateResponse.getResult().name();
-
+                                    return hotel;
                                 }
                             }
                         }
@@ -241,6 +246,50 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
         return hotelsList;
     }
 
+    public void deleteHotelByIDfromElastic(String hotel_id) throws DocumentNotFoundException {
+        Hotel hoteldocument = new Hotel();
+        hoteldocument = getHotelInfoByIDfromElastic(hotel_id);
+        if (hoteldocument.getHotel_id() != null) {
+            DeleteRequest deleteRequest = new DeleteRequest();
+            deleteRequest.index(hotel_INDEX);
+            deleteRequest.id(hotel_id);
+            try {
+                DeleteResponse deleteResponse = client.delete(deleteRequest, RequestOptions.DEFAULT);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            throw new DocumentNotFoundException("Hotel ID does not exist");
+        }
+    }
+
+
+    @Override
+    public List<String> getHotelsCountByStatusType() {
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices(hotel_INDEX);
+        AggregationBuilder aggregation =
+                AggregationBuilders
+                        .filters("agg",
+                                new FiltersAggregator.KeyedFilter("townhouse", QueryBuilders.termQuery("hotel_status", "townhouse")),
+                                new FiltersAggregator.KeyedFilter("active", QueryBuilders.termQuery("hotel_type", "active")));
+//        searchRequest.source(aggregation);
+        SearchResponse searchResponse = null;
+        // sr is here your SearchResponse object
+        List<String> doc_count = new ArrayList<>();
+//        searchResponse = client.search(aggregation, RequestOptions.DEFAULT);
+        Filters agg = searchResponse.getAggregations().get("agg");
+
+        // For each entry
+        for (Filters.Bucket entry : agg.getBuckets()) {
+            String key = entry.getKeyAsString();            // bucket key
+            long docCount = entry.getDocCount();            // Doc count
+            doc_count.add("key [{}], doc_count [{}]" + key + docCount);
+//            logger.info("key [{}], doc_count [{}]", key, docCount);
+        }
+
+        return doc_count;
+    }
 
     @Override
     public String AddCitytoElastic(City city) throws DocumentNotFoundException {

@@ -15,7 +15,11 @@ public interface HotelsearchRepo {
 
     String AddHoteltoES(Hotel hotel) throws DocumentNotFoundException;
 
-    String updateHotelInfotoElastic(String hotel_id, Hotel hotel) throws DocumentNotFoundException;
+    Hotel updateHotelInfotoElastic(String hotel_id, Hotel hotel) throws DocumentNotFoundException;
 
     Hotel getHotelInfoByIDfromElastic(String hotel_id) throws DocumentNotFoundException;
+
+    List<String> getHotelsCountByStatusType();
+
+    void deleteHotelByIDfromElastic(String hotel_id) throws DocumentNotFoundException;
 }
