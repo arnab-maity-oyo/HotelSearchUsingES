@@ -1,5 +1,7 @@
 package com.arnab.hotelsearchtask.hotel_search_task.repository;
 
+import com.arnab.hotelsearchtask.hotel_search_task.enums.HotelStatus;
+import com.arnab.hotelsearchtask.hotel_search_task.enums.HotelType;
 import com.arnab.hotelsearchtask.hotel_search_task.exception.DocumentNotFoundException;
 import com.arnab.hotelsearchtask.hotel_search_task.model.City;
 import com.arnab.hotelsearchtask.hotel_search_task.model.Country;
@@ -17,13 +19,11 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.core.CountRequest;
+import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.filter.Filters;
-import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregator;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -266,29 +266,29 @@ public class HotelsearchRepoImpl implements HotelsearchRepo, CountryRepo, CityRe
 
     @Override
     public List<String> getHotelsCountByStatusType() {
-        SearchRequest searchRequest = new SearchRequest();
-        searchRequest.indices(hotel_INDEX);
-        AggregationBuilder aggregation =
-                AggregationBuilders
-                        .filters("agg",
-                                new FiltersAggregator.KeyedFilter("townhouse", QueryBuilders.termQuery("hotel_status", "townhouse")),
-                                new FiltersAggregator.KeyedFilter("active", QueryBuilders.termQuery("hotel_type", "active")));
-//        searchRequest.source(aggregation);
-        SearchResponse searchResponse = null;
-        // sr is here your SearchResponse object
-        List<String> doc_count = new ArrayList<>();
-//        searchResponse = client.search(aggregation, RequestOptions.DEFAULT);
-        Filters agg = searchResponse.getAggregations().get("agg");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        CountRequest countRequest = new CountRequest();
+        List<String> show_count_details = new ArrayList<>();
+        for (HotelType hotel_type_info : HotelType.values()) {
+            for (HotelStatus hotel_status_info : HotelStatus.values()) {
+                searchSourceBuilder.query(QueryBuilders.boolQuery()
+                        .must(QueryBuilders.termQuery("hotel_type.keyword", hotel_type_info))
+                        .must(QueryBuilders.termQuery("hotel_status.keyword", hotel_status_info)));
+                countRequest.indices(hotel_INDEX);
+                countRequest.source(searchSourceBuilder);
 
-        // For each entry
-        for (Filters.Bucket entry : agg.getBuckets()) {
-            String key = entry.getKeyAsString();            // bucket key
-            long docCount = entry.getDocCount();            // Doc count
-            doc_count.add("key [{}], doc_count [{}]" + key + docCount);
-//            logger.info("key [{}], doc_count [{}]", key, docCount);
+                CountResponse countResponse = null;
+                try {
+                    countResponse = client.count(countRequest, RequestOptions.DEFAULT);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Long count = countResponse.getCount();
+                show_count_details.add("Hotel_Type : " + hotel_type_info +
+                        ", Hotel_Status : " + hotel_status_info + ", _docCount : " + count);
+            }
         }
-
-        return doc_count;
+        return show_count_details;
     }
 
     @Override

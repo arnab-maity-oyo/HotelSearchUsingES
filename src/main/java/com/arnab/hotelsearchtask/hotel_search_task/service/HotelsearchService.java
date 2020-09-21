@@ -1,5 +1,7 @@
 package com.arnab.hotelsearchtask.hotel_search_task.service;
 
+import com.arnab.hotelsearchtask.hotel_search_task.enums.HotelStatus;
+import com.arnab.hotelsearchtask.hotel_search_task.enums.HotelType;
 import com.arnab.hotelsearchtask.hotel_search_task.exception.DocumentNotFoundException;
 import com.arnab.hotelsearchtask.hotel_search_task.model.Hotel;
 import com.arnab.hotelsearchtask.hotel_search_task.repository.HotelsearchRepo;
