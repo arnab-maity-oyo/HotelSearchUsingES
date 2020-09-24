@@ -5,8 +5,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 
+import java.io.Serializable;
+
 @Document(indexName = "city_oyo")
-public class City {
+public class City implements Serializable {
     @Id
     @Field(value="city_id")
     private String city_id;

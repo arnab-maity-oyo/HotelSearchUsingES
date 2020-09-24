@@ -7,9 +7,11 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 
+import java.io.Serializable;
+
 
 @Document(indexName = "hotels_oyo")
-public class Hotel {
+public class Hotel implements Serializable {
     @Id
     @Field(value = "hotel_id")
     private String hotel_id;

@@ -1,5 +1,6 @@
 package com.arnab.hotelsearchtask.hotel_search_task.repository;
 
+import com.arnab.hotelsearchtask.hotel_search_task.exception.DocumentNotFoundException;
 import com.arnab.hotelsearchtask.hotel_search_task.model.Country;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
@@ -25,6 +26,7 @@ import java.util.Map;
 import static com.arnab.hotelsearchtask.hotel_search_task.util.Constant.country_INDEX;
 
 
+
 @Component
 public class CountryRepoImpl implements CountryRepo {
     @Autowired
@@ -34,12 +36,27 @@ public class CountryRepoImpl implements CountryRepo {
             RestClient.builder(new HttpHost("localhost", 9200, "http")));
 
     @Override
-    public String AddCountrytoElastic(Country country) throws IOException {
+    public String AddCountrytoElastic(Country country)  {
         IndexRequest request = new IndexRequest(country_INDEX);
-        request.id(country.getCountry_id());
-        request.source(new ObjectMapper().writeValueAsString(country), XContentType.JSON);
-        IndexResponse indexResponse = client.index(request, RequestOptions.DEFAULT);
-        System.out.println("response id: " + indexResponse.getId());
+
+        try {
+            request.id(country.getCountry_id());
+            request.source(new ObjectMapper().writeValueAsString(country), XContentType.JSON);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        IndexResponse indexResponse = null;
+        try {
+            indexResponse = client.index(request, RequestOptions.DEFAULT);
+            System.out.println("response id: " + indexResponse.getId());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
         return indexResponse.getResult().name();
     }
 
@@ -66,4 +83,39 @@ public class CountryRepoImpl implements CountryRepo {
         }
         return countriesList;
     }
+
+    @Override
+    public Country getCountryInfoFromElastic(String country_id) throws DocumentNotFoundException{
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.indices(country_INDEX);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.boolQuery().must(
+                QueryBuilders.termQuery("country_id.keyword", country_id)));
+
+        searchRequest.source(searchSourceBuilder);
+
+        Country countryInfo = new Country();
+        SearchResponse searchResponse = null;
+        try {
+            searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+            if (searchResponse.getHits().getTotalHits().value > 0) {
+                SearchHit[] searchHit = searchResponse.getHits().getHits();
+                for (SearchHit hit : searchHit) {
+                    Map<String, Object> map = hit.getSourceAsMap();
+                    countryInfo = objectMapper.convertValue(map, Country.class);
+                }
+            }
+            else
+            {
+                throw new DocumentNotFoundException("Country Not present in the database");
+            }
+
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return countryInfo;
+    }
+
 }

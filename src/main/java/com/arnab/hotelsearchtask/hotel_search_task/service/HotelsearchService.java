@@ -1,5 +1,8 @@
 package com.arnab.hotelsearchtask.hotel_search_task.service;
 
+import com.arnab.hotelsearchtask.hotel_search_task.enums.HotelStatus;
+import com.arnab.hotelsearchtask.hotel_search_task.enums.HotelType;
+import com.arnab.hotelsearchtask.hotel_search_task.exception.DocumentNotFoundException;
 import com.arnab.hotelsearchtask.hotel_search_task.model.Hotel;
 import com.arnab.hotelsearchtask.hotel_search_task.repository.HotelsearchRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +31,24 @@ public class HotelsearchService {
 
     }
 
-    public String addHoteltoElastic(Hotel hotel) throws IOException {
+    public String addHoteltoElastic(Hotel hotel)
+            throws DocumentNotFoundException {
         return hotelRepository.AddHoteltoES(hotel);
+    }
+
+    public Hotel updateHotelInfo(String hotel_id, Hotel hotel) throws DocumentNotFoundException {
+        return hotelRepository.updateHotelInfotoElastic(hotel_id, hotel);
+    }
+
+    public Hotel getHotelInfoByID(String hotel_id)throws DocumentNotFoundException {
+        return  hotelRepository.getHotelInfoByIDfromElastic(hotel_id);
+    }
+
+    public List<String> getHotelsCount() {
+        return hotelRepository.getHotelsCountByStatusType();
+    }
+
+    public void deleteHotelByID(String hotel_id) throws DocumentNotFoundException {
+        hotelRepository.deleteHotelByIDfromElastic(hotel_id);
     }
 }
